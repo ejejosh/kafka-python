@@ -16,3 +16,23 @@ services:
       - 8081:8081
       - 8082:8082
       - 9092:9092
+  console:
+    image: docker.redpanda.com/redpandadata/console:v2.7.1
+    entrypoint: /bin/sh
+    command: -c "echo \"$$CONSOLE_CONFIG_FILE\" > /tmp/config.yml; /app/console"
+    environment:
+      CONFIG_FILEPATH: /tmp/config.yml
+      CONSOLE_CONFIG_FILE: |
+        kafka:
+          brokers: ["redpanda:19092"] 
+          schemaRegistry:
+            enabled: true
+            urls: ["http://redpanda:18081"]
+        redpanda:
+          adminApi:
+            enabled: true
+            urls: ["http://redpanda:9644"]
+    ports:
+      - 8080:8080
+    depends_on:
+      - redpanda
