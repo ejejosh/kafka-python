@@ -8,6 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.11"
 confluent-kafka = "^2.5.0"
+jsonschema = "^4.23.0"
 
 
 [build-system]

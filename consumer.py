@@ -1,4 +1,5 @@
 from confluent_kafka import Consumer
+import json
 
 
 class ConsumerClass:
@@ -19,7 +20,10 @@ class ConsumerClass:
                 if msg.error():
                     print(f"Error while consuming message: {msg.error()}")
                     continue
-                print(f"Message Consumed: {msg.value().decode('utf-8')}")
+                print(f"Message Consumed: {msg.value()}, Type is: {type(msg.value())}")
+                print(f"Deserialized Message Consumed: {msg.value().decode('utf-8')}, Type is: {type(msg.value().decode('utf-8'))}")
+                dict_message = json.loads(msg.value().decode('utf-8'))
+                print(dict_message, type(dict_message))
         except KeyboardInterrupt:
             pass
         finally:
