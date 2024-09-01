@@ -8,15 +8,17 @@ from uuid import uuid4
 
 class User:
 
-    def __init__(self, first_name, middle_name, last_name, age):
+    def __init__(self, user_id, first_name, middle_name, last_name, age, email):
+        self.user_id = user_id
         self.first_name = first_name
         self.middle_name = middle_name
         self.last_name = last_name
         self.age = age
+        self.email = email
 
 
 def user_to_dict(user):
-    return dict(first_name=user.first_name, middle_name=user.middle_name, last_name=user.last_name, age=user.age)
+    return dict(user_id=user.user_id, first_name=user.first_name, middle_name=user.middle_name, last_name=user.last_name, age=user.age, email=user.email)
 
 
 def delivery_report(err, msg):
@@ -29,27 +31,29 @@ def delivery_report(err, msg):
 
 class AvroProducerClass(ProducerClass):
 
-    def __init__(self, bootstrap_server, topic, schema_registry_client, schema_str, message_size, compression_type):
-        super().__init__(bootstrap_server, topic, message_size, compression_type)
+    def __init__(self, bootstrap_server, topic, schema_registry_client, schema_str, message_size, compression_type, batch_size=None, waiting_time=None):
+        super().__init__(bootstrap_server, topic, message_size, compression_type, batch_size, waiting_time)
         self.schema_registry_client = schema_registry_client
         self.schema_str = schema_str
         self.value_serializer = AvroSerializer(schema_registry_client, schema_str)
         self.key_serializer = StringSerializer('utf-8')
 
-    def send_message(self, message):
+    def send_message(self, key=None, value=None):
         try:
-            # Schema validation
-            print(f"Message size is: {len(message) / (1024 * 1024)}")
-            avro_byte_message = self.value_serializer(message, SerializationContext(topic, MessageField.VALUE))
+            if value:
+                print(f"Message size is: {len(value) / (1024 * 1024)}")
+                avro_byte_value = self.value_serializer(value, SerializationContext(topic, MessageField.VALUE))
+            else:
+                avro_byte_value = None
             self.producer.produce(
                                 topic=self.topic,
-                                key=self.key_serializer(str(uuid4())),
-                                value=avro_byte_message,
+                                key=self.key_serializer(str(key)),
+                                value=avro_byte_value,
                                 headers={"correlation_id": str(uuid4())},
                                 on_delivery=delivery_report)
             # print(f"Message Sent: {avro_byte_message}")
         except Exception as e:
-            print(e, len(message) / (1024 * 1024))
+            print(e, len(value) / (1024 * 1024))
 
 
 if __name__ == "__main__":
@@ -78,20 +82,29 @@ if __name__ == "__main__":
                           topic,
                           schema_client.schema_registry_client,
                           schema_str, message_size=4*1024*1024,
-                          compression_type="snappy")
+                          compression_type="snappy",
+                          batch_size=100_00_00,
+                          waiting_time=100_000)
 
     try:
         while True:
-            first_name = input("Enter your first name: ") * 100000
-            middle_name = input("Enter your middle name: ") * 100000
-            last_name = input("Enter your last name: ") * 10000
-            age = int(input("Enter your age: "))
-            print("=== Message Sent ===")
+            action = input("Enter 'insert' to add a record or 'delete' for tomnstone: ").strip().lower()
+            if action == "insert":
+                user_id = int(input("Enter user ID: "))
+                first_name = input("Enter your first name: ")
+                middle_name = input("Enter your middle name: ")
+                last_name = input("Enter your last name: ")
+                age = int(input("Enter your age: "))
+                email = input("Enter email address: ")
+                print("=== Message Sent ===")
 
-            user = User(first_name=first_name, middle_name=middle_name, last_name=last_name, age=age)
+                user = User(user_id=user_id, first_name=first_name, middle_name=middle_name, last_name=last_name, age=age, email=email)
 
-            p.send_message(user_to_dict(user))
-            break
+                p.send_message(key=user_id, value=user_to_dict(user))
+            elif action == "delete":
+                user_id = int(input("Enter user ID: "))
+                p.send_message(key=user_id)
+
     except KeyboardInterrupt:
         pass
 
