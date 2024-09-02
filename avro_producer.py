@@ -8,17 +8,18 @@ from uuid import uuid4
 
 class User:
 
-    def __init__(self, user_id, first_name, middle_name, last_name, age, email):
+    def __init__(self, user_id, first_name, middle_name, last_name, age, email, address):
         self.user_id = user_id
         self.first_name = first_name
         self.middle_name = middle_name
         self.last_name = last_name
         self.age = age
         self.email = email
+        self.address = address
 
 
 def user_to_dict(user):
-    return dict(user_id=user.user_id, first_name=user.first_name, middle_name=user.middle_name, last_name=user.last_name, age=user.age, email=user.email)
+    return dict(user_id=user.user_id, first_name=user.first_name, middle_name=user.middle_name, last_name=user.last_name, age=user.age, email=user.email, address=user.address)
 
 
 def delivery_report(err, msg):
@@ -56,7 +57,7 @@ class AvroProducerClass(ProducerClass):
             print(e, len(value) / (1024 * 1024))
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": 
     bootstrap_server = "localhost:19092"
     topic = "test-topic"
     schema_url = "http://localhost:18081"
@@ -64,7 +65,7 @@ if __name__ == "__main__":
 
     # Create Topic
     a = Admin(bootstrap_server)
-    a.create_topic(topic)
+    a.create_topic(topic, 2)
 
     # Register Schema
 
@@ -72,6 +73,7 @@ if __name__ == "__main__":
         avro_schema = avro_file.read()
 
     schema_client = SchemaClient(schema_url, topic, avro_schema, schema_type)
+    schema_client.set_compatibility('FORWARD')
     schema_client.register_schema()
 
     # Get schema from registry
@@ -95,10 +97,11 @@ if __name__ == "__main__":
                 middle_name = input("Enter your middle name: ")
                 last_name = input("Enter your last name: ")
                 age = int(input("Enter your age: "))
-                email = input("Enter email address: ")
+                email = input("Enter email email address: ")
+                address = input("Enter email address: ")
                 print("=== Message Sent ===")
 
-                user = User(user_id=user_id, first_name=first_name, middle_name=middle_name, last_name=last_name, age=age, email=email)
+                user = User(user_id=user_id, first_name=first_name, middle_name=middle_name, last_name=last_name, age=age, email=email, address=address)
 
                 p.send_message(key=user_id, value=user_to_dict(user))
             elif action == "delete":

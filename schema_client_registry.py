@@ -26,15 +26,20 @@ class SchemaClient:
             print(e)
 
     def register_schema(self):
-        if not self.get_schema_version():
-            try:
-                schema = Schema(self.schema_str, self.schema_type)
-                self.schema_registry_client.register_schema(self.subject_name, schema)
-                print("Schema Successfully Registered")
-            except SchemaRegistryError as e:
-                print(e)
-        else:
-            print("Schema Already Registered")
+        try:
+            schema = Schema(self.schema_str, self.schema_type)
+            self.schema_registry_client.register_schema(self.subject_name, schema)
+            print("Schema Successfully Registered")
+        except SchemaRegistryError as e:
+            print(e)
+
+    def set_compatibility(self, compatibility):
+        try:
+            self.schema_registry_client.set_compatibility(self.subject_name, compatibility)
+            print(f"Schema compatibility has been set to: {compatibility}")
+        except SchemaRegistryError as e:
+            print("Schema not compatible")
+            exit(1)
 
 
 if __name__ == "__main__":

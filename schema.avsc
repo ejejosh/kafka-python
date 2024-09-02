@@ -25,6 +25,10 @@
       {
          "name": "email",
          "type": "string"
+      },
+      {
+         "name": "address",
+         "type": "string"
       }
    ]
 }

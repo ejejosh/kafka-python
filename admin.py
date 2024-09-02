@@ -10,10 +10,11 @@ class Admin:
         all_topics = self.admin.list_topics()
         return topic in all_topics.topics.keys()
 
-    def create_topic(self, topic):
+    def create_topic(self, topic, partitions=1):
         if not self.topic_exists(topic):
-            new_topics = NewTopic(topic)
+            new_topics = NewTopic(topic, num_partitions=partitions)
             self.admin.create_topics([new_topics])
             print(f"Topic: {topic} has been created ")
         else:
             print(f"Topic: {topic} already exists")
+

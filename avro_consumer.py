@@ -9,7 +9,7 @@ class AvroConsumerClass:
         self.bootstrap_server = bootstrap_server
         self.topic = topic
         self.group_id = group_id
-        self.consumer = Consumer({'bootstrap.servers': self.bootstrap_server, 'group.id': self.group_id})
+        self.consumer = Consumer({'bootstrap.servers': self.bootstrap_server, 'group.id': self.group_id,  "auto.offset.reset": "latest"})
         self.schema_client_registry = schema_client_registry
         self.schema_str = schema_str
         self.value_deserializer = AvroDeserializer(schema_client_registry, schema_str)
@@ -26,7 +26,6 @@ class AvroConsumerClass:
                     print(f"Error while consuming message: {msg.error()}")
                     continue
                 message = msg.value()
-                print(f"Byte Message Consumed: {message}, Type is: {type(message)}")
                 deserialized_message = self.value_deserializer(message, SerializationContext(self.topic, MessageField.VALUE))
                 print(f"Deserialized Message Consumed: {deserialized_message}, Type is: {type(deserialized_message)}")
         except KeyboardInterrupt:

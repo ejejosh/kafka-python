@@ -6,7 +6,7 @@ class ProducerClass:
     def __init__(self, bootstrap_server, topic, message_size=None, compression_type=None, batch_size=None, waiting_time=None):
         self.bootstrap_server = bootstrap_server
         self.topic = topic
-        self.conf = {'bootstrap.servers': self.bootstrap_server}
+        self.conf = {'bootstrap.servers': self.bootstrap_server, 'partitioner': 'random'}
         if message_size:
             self.conf['message.max.bytes'] = message_size
         if compression_type:
